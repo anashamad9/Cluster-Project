@@ -37,17 +37,27 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   };
 
-  if (!hasSupabaseEnv) {
-    const demoRole = request.cookies.get("cybercultx_demo_role")?.value as UserRole | undefined;
-    if (!demoRole) {
-      if (!isPublicRoute && !isMfaRoute) return redirectTo("/login");
-      return response;
+  const demoRole = request.cookies.get("cybercultx_demo_role")?.value as
+    | UserRole
+    | undefined;
+
+  // Explicit temporary sessions must remain navigable even when Supabase
+  // variables exist but the remote project is not fully configured yet.
+  if (demoRole && demoRole in ROLE_HOME) {
+    if (isAuthRoute || isMfaRoute || path === "/") {
+      return redirectTo(ROLE_HOME[demoRole]);
     }
-    if (isAuthRoute || isMfaRoute || path === "/") return redirectTo(ROLE_HOME[demoRole]);
     if (roleSegment && roleSegment in ROLE_HOME && roleSegment !== demoRole) {
       return redirectTo(ROLE_HOME[demoRole]);
     }
     return response;
+  }
+
+  if (!hasSupabaseEnv) {
+    if (!demoRole) {
+      if (!isPublicRoute && !isMfaRoute) return redirectTo("/login");
+      return response;
+    }
   }
 
   const supabase = createMiddlewareClient(request, response);

@@ -33,3 +33,43 @@ for (const [role, email] of Object.entries(roles)) {
 }
 
 await expect("/ar/login");
+
+const demoForm = new FormData();
+demoForm.set("role", "employee");
+demoForm.set("locale", "en");
+const demoLogin = await expect(
+  "/api/auth/demo-login",
+  { method: "POST", body: demoForm },
+  303,
+);
+const demoCookie = demoLogin.headers.get("set-cookie");
+const logoutPrefetch = await expect("/api/auth/logout", {
+  headers: { cookie: demoCookie },
+}, 405);
+if (logoutPrefetch.headers.get("set-cookie")) {
+  throw new Error("GET /api/auth/logout must not clear session cookies");
+}
+for (const route of [
+  "/en/employee/dashboard",
+  "/en/employee/risk",
+  "/en/employee/learning",
+  "/en/employee/assessments",
+  "/en/employee/phishing",
+  "/en/employee/notifications",
+  "/ar/employee/dashboard",
+  "/ar/employee/risk",
+  "/ar/employee/learning",
+]) {
+  await expect(route, { headers: { cookie: demoCookie } });
+}
+
+const logoutForm = new FormData();
+logoutForm.set("locale", "en");
+const logout = await expect(
+  "/api/auth/logout",
+  { method: "POST", body: logoutForm, headers: { cookie: demoCookie } },
+  303,
+);
+if (!logout.headers.get("set-cookie")?.includes("cybercultx_demo_role=")) {
+  throw new Error("POST /api/auth/logout did not clear the demo session");
+}

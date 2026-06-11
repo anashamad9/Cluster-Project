@@ -36,7 +36,26 @@ export default async function LoginPage() {
             <div className="space-y-2"><div className="flex justify-between"><Label htmlFor="password">{t("password")}</Label><a className="text-xs font-medium text-primary hover:underline" href={`/${locale}/forgot-password`}>{t("forgotPassword")}</a></div><Input id="password" name="password" type="password" defaultValue="CyberCultX@2026" required /></div>
             <Button className="w-full" size="lg" type="submit">{t("signInButton")}</Button>
           </form>
-          <div className="mt-7 rounded-2xl bg-muted p-4"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("demoRoles")}</p><div className="mt-3 flex flex-wrap gap-2">{Object.entries(roleEmails).map(([role, email]) => <code key={role} className="rounded-lg bg-background px-2 py-1 text-[11px] shadow-sm">{locale === "ar" ? roleNamesArabic[role as UserRole] : role}: {email}</code>)}</div></div>
+          <div className="mt-7 rounded-2xl bg-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("demoRoles")}</p>
+            <div className="mt-3 space-y-2">
+              {Object.entries(roleEmails).map(([role, email]) => (
+                <div key={role} className="flex items-center gap-2 rounded-xl bg-background p-2 shadow-sm">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold">{locale === "ar" ? roleNamesArabic[role as UserRole] : role}</p>
+                    <code className="block truncate text-[10px] text-muted-foreground">{email}</code>
+                  </div>
+                  <form action="/api/auth/demo-login" method="post">
+                    <input type="hidden" name="locale" value={locale} />
+                    <input type="hidden" name="role" value={role} />
+                    <Button type="submit" variant="outline" size="sm">
+                      {locale === "ar" ? "دخول مؤقت" : "Temporary login"}
+                    </Button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     </div>

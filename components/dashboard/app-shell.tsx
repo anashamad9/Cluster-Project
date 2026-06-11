@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useLocale } from "next-intl";
 import { Bot, ChevronDown, Languages, LogOut, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
-import NextLink from "next/link";
 import { AppIcon } from "@/components/dashboard/icon";
 import { Button } from "@/components/ui/button";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
@@ -59,7 +58,10 @@ export function AppShell({ role, children }: { role: UserRole; children: React.R
             <button className="grid size-10 place-items-center rounded-xl hover:bg-muted" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label="Toggle theme">{resolvedTheme === "dark" ? <Sun className="size-4.5" /> : <Moon className="size-4.5" />}</button>
             <Link href={`/${role}/notifications`} className="relative grid size-10 place-items-center rounded-xl hover:bg-muted"><AppIcon name="bell" className="size-4.5" /><span className="absolute end-2 top-2 size-2 rounded-full bg-red-500 ring-2 ring-background" /></Link>
             <div className="ms-2 grid size-9 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">{role.slice(0, 2).toUpperCase()}</div>
-            <NextLink href="/api/auth/logout" className="grid size-10 place-items-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Sign out"><LogOut className="size-4.5" /></NextLink>
+            <form action="/api/auth/logout" method="post">
+              <input type="hidden" name="locale" value={locale} />
+              <button type="submit" className="grid size-10 place-items-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Sign out"><LogOut className="size-4.5" /></button>
+            </form>
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1500px] p-4 sm:p-6 lg:p-8">{children}</main>

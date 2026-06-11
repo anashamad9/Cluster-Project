@@ -33,6 +33,15 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.redirect(new URL(`/${locale}${ROLE_HOME[role]}`, request.url), 303);
-  response.cookies.set("cybercultx_demo_role", role, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
+  if (!hasSupabaseEnv) {
+    response.cookies.set("cybercultx_demo_role", role, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 8,
+    });
+  } else {
+    response.cookies.delete("cybercultx_demo_role");
+  }
   return response;
 }
