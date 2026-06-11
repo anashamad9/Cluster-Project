@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:reui.io)",
+      "Bash(npm -v)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir=false --import-alias \"@/*\" --use-npm --turbopack --yes)",
+      "Bash(npx create-next-app@latest cybercultx --typescript --tailwind --eslint --app --src-dir=false --import-alias \"@/*\" --use-npm --turbopack --yes)",
+      "Bash(rsync -a cybercultx/ .)",
+      "Bash(npm install *)",
+      "Bash(npx shadcn@latest init -d --yes)",
+      "Bash(cd \"/Users/anashamad/Yazan platform\" && rm app/page.tsx app/layout.tsx && mkdir -p \"app/[locale]\")",
+      "Bash(cd \"/Users/anashamad/Yazan platform\" && mkdir -p \"app/[locale]/\\(auth\\)/login\")",
+      "Bash(timeout 60 npm run dev)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{url_effective}\\\\n\" -L http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{url_effective}\\\\n\" -L http://localhost:3000/ar)",
+      "Bash(curl -s http://localhost:3000/en/login)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(npx shadcn@latest add input label form card alert separator checkbox sonner)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d['dependencies'], indent=2\\)\\)\")"
+    ],
+    "additionalDirectories": [
+      "/Users/anashamad/Yazan platform/app",
+      "/Users/anashamad/Yazan platform/app/[locale]/(auth)"
+    ]
+  }
+}

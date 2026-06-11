@@ -1,4 +1,11 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CyberCultX
+
+Human Risk Intelligence Platform with role workspaces for employees,
+executives, HR, administrators, and platform super administrators.
+
+The app runs in demo mode when Supabase and OpenAI environment variables are
+empty. Demo login emails are shown on the login page and all use
+`CyberCultX@2026`.
 
 ## Getting Started
 
@@ -15,6 +22,15 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+Run the production checks:
+
+```bash
+npm run lint
+npm run build
+npm run start
+npm run test:smoke
+```
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
