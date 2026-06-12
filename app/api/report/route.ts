@@ -1,16 +1,45 @@
+import type { UserRole } from "@/lib/auth/roles";
+import { getDashboardData } from "@/lib/dashboard-data";
+import { createClient } from "@/lib/supabase/server";
+
 function escapePdfText(value: string) {
   return value.replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
 }
 
-export async function GET() {
-  const lines = [
+export async function GET(request: Request) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).single()
+    : { data: null };
+  const data = await getDashboardData((profile?.role as UserRole | undefined) ?? "employee");
+  const type = new URL(request.url).searchParams.get("type") ?? "risk";
+  const common = [
     "CyberCultX Human Risk Intelligence Report",
-    "Organization: Al Falah Holdings",
-    "Human Risk Score: 39 - improving",
-    "Cyber Culture Index: 78",
-    "Estimated financial exposure: USD 412,000",
-    "Priority: reduce security fatigue through targeted learning.",
+    `Organization: ${data.tenantName || "Platform"}`,
   ];
+  const sections: Record<string, string[]> = {
+    risk: [
+    `Human Risk Score: ${data.currentHrs}`,
+    `Cyber Culture Index: ${data.currentCci}`,
+    `Estimated financial exposure: ${data.exposure.currency} ${data.exposure.value.toLocaleString("en-US")}`,
+    `Security fatigue: ${data.predictive.securityFatigue}%`,
+    `Phishing susceptibility: ${data.predictive.phishingSusceptibility}%`,
+    ],
+    learning: [
+      `Learning completion: ${data.metrics.learningCompletion}%`,
+      `Assessment completion: ${data.metrics.assessmentCompletion}%`,
+      `Active learners: ${data.metrics.activeLearners}`,
+      `Published courses: ${data.courses.length}`,
+    ],
+    phishing: [
+      `Report rate: ${data.campaignStats.reportRate}%`,
+      `Click rate: ${data.campaignStats.clickRate}%`,
+      `Active campaigns: ${data.campaignStats.active}`,
+      `Completed simulations: ${data.campaignStats.completed}`,
+    ],
+  };
+  const lines = [...common, ...(sections[type] ?? sections.risk)];
   const content = lines.map((line, index) => `BT /F1 ${index === 0 ? 18 : 11} Tf 72 ${750 - index * 36} Td (${escapePdfText(line)}) Tj ET`).join("\n");
   const objects = [
     "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",

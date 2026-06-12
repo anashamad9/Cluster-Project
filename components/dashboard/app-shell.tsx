@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useLocale } from "next-intl";
 import { Bot, ChevronDown, Languages, LogOut, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -14,12 +14,29 @@ import { cn } from "@/lib/utils";
 export function AppShell({ role, children }: { role: UserRole; children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
 
   const switchLocale = () => router.replace(pathname, { locale: locale === "en" ? "ar" : "en" });
+  const runSearch = () => {
+    const query = search.toLowerCase();
+    const available = roleNav[role].map((item) => item.href);
+    const target = query.includes("course") || query.includes("learn") || query.includes("دور") ? "learning"
+      : query.includes("people") || query.includes("employee") || query.includes("موظ") ? "people"
+      : query.includes("report") || query.includes("تقرير") ? "reports"
+      : query.includes("campaign") || query.includes("phish") || query.includes("تصيد") ? (available.includes("campaigns") ? "campaigns" : "phishing")
+      : query.includes("assessment") || query.includes("تقييم") ? "assessments"
+      : query.includes("risk") || query.includes("مخاطر") ? "risk" : available[0];
+    router.push(`/${role}/${available.includes(target) ? target : available[0]}`);
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -52,10 +69,10 @@ export function AppShell({ role, children }: { role: UserRole; children: React.R
       <div className="lg:ps-64">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 bg-background/85 px-4 shadow-[0_1px_0_rgba(0,0,0,.06)] backdrop-blur-xl sm:px-6">
           <button className="grid size-10 place-items-center lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><Menu className="size-5" /></button>
-          <div className="relative hidden max-w-md flex-1 sm:block"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><input className="h-10 w-full rounded-xl bg-muted/70 ps-10 pe-4 text-sm outline-none ring-primary/20 transition-shadow focus:ring-3" placeholder={locale === "ar" ? "البحث عن موظفين وتقارير ودورات..." : "Search people, reports, courses..."} /></div>
+          <form className="relative hidden max-w-md flex-1 sm:block" onSubmit={(event) => { event.preventDefault(); runSearch(); }}><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} className="h-10 w-full rounded-xl bg-muted/70 ps-10 pe-4 text-sm outline-none ring-primary/20 transition-shadow focus:ring-3" placeholder={locale === "ar" ? "البحث عن موظفين وتقارير ودورات..." : "Search people, reports, courses..."} /></form>
           <div className="ms-auto flex items-center gap-1">
             <button className="grid size-10 place-items-center rounded-xl hover:bg-muted" onClick={switchLocale} aria-label="Switch language"><Languages className="size-4.5" /></button>
-            <button className="grid size-10 place-items-center rounded-xl hover:bg-muted" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label="Toggle theme">{resolvedTheme === "dark" ? <Sun className="size-4.5" /> : <Moon className="size-4.5" />}</button>
+            <button className="grid size-10 place-items-center rounded-xl hover:bg-muted" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label="Toggle theme">{mounted && resolvedTheme === "dark" ? <Sun className="size-4.5" /> : <Moon className="size-4.5" />}</button>
             <Link href={`/${role}/notifications`} className="relative grid size-10 place-items-center rounded-xl hover:bg-muted"><AppIcon name="bell" className="size-4.5" /><span className="absolute end-2 top-2 size-2 rounded-full bg-red-500 ring-2 ring-background" /></Link>
             <div className="ms-2 grid size-9 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">{role.slice(0, 2).toUpperCase()}</div>
             <form action="/api/auth/logout" method="post">

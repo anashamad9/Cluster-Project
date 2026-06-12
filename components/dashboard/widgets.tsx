@@ -53,7 +53,8 @@ export function RiskGauge({ value = 39, label = "Human Risk Score" }: { value?: 
 }
 
 export function TrendChart({ values, label = "12-week trend" }: { values: number[]; label?: string }) {
-  const points = values.map((value, index) => `${(index / (values.length - 1)) * 100},${100 - value}`).join(" ");
+  const chartValues = values.length > 1 ? values : values.length === 1 ? [values[0], values[0]] : [0, 0];
+  const points = chartValues.map((value, index) => `${(index / (chartValues.length - 1)) * 100},${100 - value}`).join(" ");
   return (
     <div className="surface-card min-h-72 p-6">
       <div className="flex items-center justify-between">
