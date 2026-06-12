@@ -54,50 +54,54 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!hasSupabaseEnv) {
-    if (!demoRole) {
-      if (!isPublicRoute && !isMfaRoute) return redirectTo("/login");
-      return response;
-    }
-  }
-
-  const supabase = createMiddlewareClient(request, response);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    if (!isPublicRoute && !isMfaRoute) {
-      return redirectTo("/login");
-    }
+    if (!isPublicRoute && !isMfaRoute) return redirectTo("/login");
     return response;
   }
 
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  const needsMfa =
-    !!aal && aal.nextLevel === "aal2" && aal.currentLevel !== aal.nextLevel;
+  try {
+    const supabase = createMiddlewareClient(request, response);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (needsMfa && !isMfaRoute) {
-    return redirectTo("/mfa");
-  }
+    if (!user) {
+      if (!isPublicRoute && !isMfaRoute) {
+        return redirectTo("/login");
+      }
+      return response;
+    }
 
-  if (!needsMfa && (isMfaRoute || isAuthRoute || path === "/")) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    return redirectTo(ROLE_HOME[(profile?.role as UserRole) ?? "employee"]);
-  }
+    const { data: aal } =
+      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    const needsMfa =
+      !!aal && aal.nextLevel === "aal2" && aal.currentLevel !== aal.nextLevel;
 
-  if (roleSegment && roleSegment in ROLE_HOME) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    if (profile?.role !== roleSegment) {
+    if (needsMfa && !isMfaRoute) {
+      return redirectTo("/mfa");
+    }
+
+    if (!needsMfa && (isMfaRoute || isAuthRoute || path === "/")) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
       return redirectTo(ROLE_HOME[(profile?.role as UserRole) ?? "employee"]);
     }
+
+    if (roleSegment && roleSegment in ROLE_HOME) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (profile?.role !== roleSegment) {
+        return redirectTo(ROLE_HOME[(profile?.role as UserRole) ?? "employee"]);
+      }
+    }
+  } catch (error) {
+    console.error("Supabase proxy session check failed", error);
+    if (!isPublicRoute && !isMfaRoute) return redirectTo("/login");
   }
 
   return response;
